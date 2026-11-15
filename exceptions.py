@@ -33,3 +33,7 @@ class AuthorDoesNotExist(EntityNotFoundError):
 
 class ViolationConstraintError(EntityConflictError):
     """Выбрасывается при попытке удаления записей на которые есть ссылки в других таблицах"""
+
+
+class BooksNotFoundError(EntityNotFoundError):
+    """Выбрасывается, если книга не была найдена"""
