@@ -1,8 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from dependencies import SessionDep
-from main import app
-from models import BooksDB
+from repositories import books as books_repo
 from schemas import (
     BookCreate,
     BookPatch,
@@ -14,79 +13,47 @@ router = APIRouter(prefix="/books", tags=["Books"])
 
 
 # Get all books
-@app.get("", tags=["Books"], summary="Get all books", response_model=list[BookResp])
+@router.get("", summary="Get all books", response_model=list[BookResp])
 def read_books(db: SessionDep):
-    return db.scalars(select(BooksDB)).all()
+    return books_repo.get_all_books(db)
 
 
 # Add a new book
-@app.post(
+@router.post(
     "",
-    tags=["Books"],
     summary="Add a new book",
     response_model=BookResp,
     status_code=status.HTTP_201_CREATED,
 )
 def create_book(book: BookCreate, db: SessionDep):
-    # Проверяем, существует ли автор перед созданием книги
-    author_exists = db.scalar(select(AuthorsDB).where(AuthorsDB.id == book.author_id))
-    if not author_exists:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Автор с id={book.author_id} не найден",
-        )
-
-    db_book = BooksDB(**book.model_dump())
-    db.add(db_book)
-    db.commit()
-    db.refresh(db_book)
-    return db_book
+    return books_repo.create_book(db, book)
 
 
-@app.put(
+# Full book update
+@router.put(
     "/{book_id}",
-    tags=["Books"],
     summary="Full change the book",
     response_model=BookResp,
 )
 def change_book(book_id: int, book_data: BookPut, db: SessionDep):
-    book_db = db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
-    if not book_db:
-        raise HTTPException(status_code=404, detail=f"Книга с ID={book_id} не найдена")
-    for field, data in book_data.model_dump().items():
-        setattr(book_db, field, data)
-    db.commit()
-    db.refresh(book_db)
-    return book_db
+    return books_repo.put_book(db, book_data, book_id)
 
 
-@app.patch(
+# Partial book update
+@router.patch(
     "/{book_id}",
-    tags=["Books"],
-    summary="Full change the book",
+    summary="Partial book update",
     response_model=BookResp,
 )
 def update_book(book_id: int, book_data: BookPatch, db: SessionDep):
-    book_db = db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
-    if not book_db:
-        raise HTTPException(status_code=404, detail=f"Книга с ID={book_id} не найдена")
-    for field, data in book_data.model_dump(exclude_unset=True).items():
-        setattr(book_db, field, data)
-    db.commit()
-    db.refresh(book_db)
-    return book_db
+    return books_repo.patch_book(db, book_data, book_id)
 
 
-@app.delete(
+# Delete the book
+@router.delete(
     "/{book_id}",
-    tags=["Books"],
     summary="Delete the book by ID",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_book(book_id: int, db: SessionDep):
-    book_db = db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
-    if not book_db:
-        raise HTTPException(status_code=404, detail=f"Книга с ID={book_id} не найдена")
-
-    db.delete(book_db)
-    db.commit()
+    books_repo.delete_book(db, book_id)

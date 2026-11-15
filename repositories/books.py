@@ -9,17 +9,14 @@ from models import BooksDB
 from schemas import BookCreate, BookPatch, BookPut
 
 
-# Получить всех авторов
 def get_all_books(db: Session) -> Sequence[BooksDB]:
     return db.scalars(select(BooksDB)).all()
 
 
-# Получить автора по ID
 def get_book_by_id(book_id: int, db: Session) -> BooksDB | None:
     return db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
 
 
-# Создать нового автора в БД
 def create_book(db: Session, book_data: BookCreate) -> BooksDB:
     new_book = BooksDB(**book_data.model_dump())
     db.add(new_book)
@@ -27,7 +24,7 @@ def create_book(db: Session, book_data: BookCreate) -> BooksDB:
         db.commit()
         db.refresh(new_book)
         return new_book
-    except AuthorDoesNotExist:
+    except IntegrityError:
         db.rollback()
         raise AuthorDoesNotExist(
             "Книга не может быть добавлена, т.к. неправильно указан ID автора"
