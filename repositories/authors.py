@@ -13,17 +13,14 @@ from models import AuthorsDB
 from schemas import AuthorCreate, AuthorPatch, AuthorPut
 
 
-# Получить всех авторов
 def get_all_authors(db: Session) -> Sequence[AuthorsDB]:
     return db.scalars(select(AuthorsDB)).all()
 
 
-# Получить автора по ID
 def get_author_by_id(author_id: int, db: Session) -> AuthorsDB | None:
     return db.scalar(select(AuthorsDB).filter(AuthorsDB.id == author_id))
 
 
-# Создать нового автора в БД
 def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB | None:
     new_author = AuthorsDB(**author_data.model_dump())
     db.add(new_author)

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, MetaData, false
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -25,12 +25,41 @@ class AuthorsDB(Base):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     created: Mapped[datetime] = mapped_column(default=datetime.now)
 
+    books: Mapped[list["BooksDB"]] = relationship(
+        back_populates="authors", cascade="all, delete-orphan", passive_deletes=True
+    )
+    reviews: Mapped[list["ReviewsDB"]] = relationship(
+        back_populates="authors", cascade="all, delete-orphan", passive_deletes=True
+    )
+
 
 class BooksDB(Base):
     __tablename__ = "books"
     id: Mapped[int] = mapped_column(primary_key=True)
-    author_id: Mapped[int] = mapped_column(ForeignKey("authors.id"), index=True)
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey("authors.id", ondelete="CASCADE"), index=True
+    )
     name: Mapped[str] = mapped_column(index=True)
     description: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(default=datetime.now)
     is_shown: Mapped[bool] = mapped_column(default=False, server_default=false())
+
+    author: Mapped["AuthorsDB"] = relationship(back_populates="books")
+
+
+class ReviewsDB(Base):
+    __tablename__ = "reviews"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    author_id: Mapped[int] = mapped_column(
+        ForeignKey("authors.id", ondelete="CASCADE"), index=True
+    )
+    book_id: Mapped[int] = mapped_column(
+        ForeignKey("books.id", ondelete="CASCADE"), index=True
+    )
+    description: Mapped[str] = mapped_column()
+    rating: Mapped[int] = mapped_column()
+    created: Mapped[datetime] = mapped_column(default=datetime.now)
+    is_shown: Mapped[bool] = mapped_column(default=False, server_default=false())
+
+    author: Mapped["AuthorsDB"] = relationship(back_populates="reviews")
+    book: Mapped["BooksDB"] = relationship(back_populates="books")
