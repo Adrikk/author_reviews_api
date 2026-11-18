@@ -1,84 +1,34 @@
 from collections.abc import Sequence
 
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 
 from dependencies import Session
-from exceptions import (
-    AuthorAlreadyExistsError,
-    AuthorDoesNotExist,
-    ViolationConstraintError,
-)
 from models import AuthorsDB
-from schemas import AuthorCreate, AuthorPatch, AuthorPut
+from schemas import AuthorCreate, AuthorPut
 
 
-def get_all_authors(db: Session) -> Sequence[AuthorsDB]:
+def get_all(db: Session) -> Sequence[AuthorsDB]:
     return db.scalars(select(AuthorsDB)).all()
 
 
-def get_author_by_id(author_id: int, db: Session) -> AuthorsDB | None:
+def get_by_id(author_id: int, db: Session) -> AuthorsDB | None:
     return db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
 
 
-def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB | None:
+def create(db: Session, author_data: AuthorCreate) -> AuthorsDB | None:
     new_author = AuthorsDB(**author_data.model_dump())
     db.add(new_author)
-    try:
-        db.commit()
-        db.refresh(new_author)
-        return new_author
-    except IntegrityError as e:
-        db.rollback()
-        raise AuthorAlreadyExistsError(
-            f"Автор с username='{new_author.username}' уже существует"
-        ) from e
+    db.flush()
+    return new_author
 
 
-def put_author(db: Session, author_data: AuthorPut, author_id: int) -> AuthorsDB:
-    db_author = db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
-    if not db_author:
-        raise AuthorDoesNotExist("Автор с таким ID не найден.")
-    for field, data in author_data.model_dump().items():
-        setattr(db_author, field, data)
-    try:
-        db.commit()
-        db.refresh(db_author)
-        return db_author
-    except IntegrityError as e:
-        db.rollback()
-        raise AuthorAlreadyExistsError(
-            "Автор с таким username или email уже существует"
-        ) from e
-
-
-def patch_author(db: Session, author_data: AuthorPatch, author_id: int) -> AuthorsDB:
-    db_author = db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
-    if not db_author:
-        raise AuthorDoesNotExist("Автор с таким ID не найден.")
+def update(db: Session, author: AuthorsDB, author_data: AuthorPut) -> AuthorsDB:
     for field, data in author_data.model_dump(exclude_unset=True).items():
-        setattr(db_author, field, data)
-    try:
-        db.commit()
-        db.refresh(db_author)
-        return db_author
-    except IntegrityError as e:
-        db.rollback()
-        raise AuthorAlreadyExistsError(
-            "Автор с таким username или email уже существует"
-        ) from e
+        setattr(author, field, data)
+    db.flush()
+    return author
 
 
-def delete_author(db: Session, author_id: int) -> bool | None:
-    db_author = db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
-    if not db_author:
-        raise AuthorDoesNotExist("Автор не найден")
-    try:
-        db.delete(db_author)
-        db.commit()
-        return True
-    except IntegrityError as e:
-        db.rollback()
-        raise ViolationConstraintError(
-            "Не удалось удалить автора, на его ID ссылаются в других таблицах."
-        ) from e
+def delete(db: Session, author: AuthorsDB) -> bool | None:
+    db.delete(author)
+    db.flush()

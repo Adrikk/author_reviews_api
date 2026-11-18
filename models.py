@@ -25,7 +25,7 @@ class AuthorsDB(Base):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     created: Mapped[datetime] = mapped_column(default=datetime.now)
 
-    books: Mapped[list["ReviewsDB"]] = relationship(
+    books: Mapped[list["BooksDB"]] = relationship(
         back_populates="authors", cascade="all, delete-orphan", passive_deletes=True
     )
     reviews: Mapped[list["ReviewsDB"]] = relationship(
@@ -33,7 +33,7 @@ class AuthorsDB(Base):
     )
 
 
-class ReviewsDB(Base):
+class BooksDB(Base):
     __tablename__ = "books"
     id: Mapped[int] = mapped_column(primary_key=True)
     author_id: Mapped[int] = mapped_column(
@@ -41,6 +41,7 @@ class ReviewsDB(Base):
     )
     name: Mapped[str] = mapped_column(index=True)
     description: Mapped[str] = mapped_column()
+    rating: Mapped[float] = mapped_column(default=0.0, server_default="0.0")
     created: Mapped[datetime] = mapped_column(default=datetime.now)
     is_shown: Mapped[bool] = mapped_column(default=False, server_default=false())
 
@@ -62,4 +63,4 @@ class ReviewsDB(Base):
     is_shown: Mapped[bool] = mapped_column(default=False, server_default=false())
 
     author: Mapped["AuthorsDB"] = relationship(back_populates="reviews")
-    book: Mapped["ReviewsDB"] = relationship(back_populates="books")
+    book: Mapped["BooksDB"] = relationship(back_populates="books")

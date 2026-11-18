@@ -1,5 +1,7 @@
+import logging
+
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from exceptions import (
@@ -11,6 +13,8 @@ app = FastAPI(title="My Pet Project")
 app.include_router(authors.router)
 app.include_router(books.router)
 
+logger = logging.getLogger("PET_CRUD_APP")
+
 
 # Root
 @app.get("/", tags=["ROOT"], summary="Root endpoint")
@@ -20,6 +24,14 @@ def root():
 
 @app.exception_handler(AppExceptions)
 def app_exceptions_handler(request: Request, exc: AppExceptions):
+    if exc.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+        logger.error(
+            "Server error on %s %s: %s",
+            request.method,
+            request.url.path,
+            exc.message,
+            exc_info=True,
+        )
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
 

@@ -3,12 +3,25 @@ from fastapi import status
 
 class AppExceptions(Exception):
     status_code: int = status.HTTP_400_BAD_REQUEST
+    default_message: str = "Ошибка приложения"
 
-    def __init__(self, message: str, status_code: int | None = None):
-        self.message = message
+    def __init__(self, message: str | None = None, status_code: int | None = None):
+        self.message = message or self.default_message
         if status_code is not None:
             self.status_code = status_code
         super().__init__(self.message)
+
+
+class ConflictError(AppExceptions):
+    """Ошибка при конфликтах данных"""
+
+    status_code = status.HTTP_409_CONFLICT
+
+
+class DatabaseError(AppExceptions):
+    """Ошибка при работе с базой"""
+
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
 
 class EntityNotFoundError(AppExceptions):

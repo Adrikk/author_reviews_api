@@ -57,6 +57,7 @@ class BookCreate(Book):
 class BookResp(Book):
     id: int
     created: datetime
+    rating: float
 
     model_config = ConfigDict(from_attributes=True)
 
