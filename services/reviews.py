@@ -59,3 +59,5 @@ def delete_review(db: Session, book_id: int, review_id: int):
     if not review:
         raise ReviewsNotFoundError(f"Отзыв с ID={review_id} не найден у данной книги")
     reviews_repo.delete(db, review)
+
+    book.rating = reviews_repo.get_average_rating(db, book_id)

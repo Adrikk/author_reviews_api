@@ -53,7 +53,7 @@ def update_author(author_id: int, author_data: AuthorPatch, db: SessionDep):
     status_code=status.HTTP_200_OK,
     response_model=AuthorResp,
 )
-def change_author(author_id: int, author_data: AuthorPut, db: SessionDep):
+def change_author(db: SessionDep, author_id: int, author_data: AuthorPut):
     return authors_repo.put_author(db, author_data, author_id)
 
 
@@ -62,5 +62,5 @@ def change_author(author_id: int, author_data: AuthorPut, db: SessionDep):
     summary="Delete an author",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_author(author_id: int, db: SessionDep):
+def delete_author(db: SessionDep, author_id: int):
     authors_repo.delete_author(db, author_id)
