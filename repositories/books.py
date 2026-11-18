@@ -14,7 +14,7 @@ def get_all_books(db: Session) -> Sequence[BooksDB]:
 
 
 def get_book_by_id(book_id: int, db: Session) -> BooksDB | None:
-    return db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
+    return db.scalar(select(BooksDB).where(BooksDB.id == book_id))
 
 
 def create_book(db: Session, book_data: BookCreate) -> BooksDB:
@@ -24,15 +24,15 @@ def create_book(db: Session, book_data: BookCreate) -> BooksDB:
         db.commit()
         db.refresh(new_book)
         return new_book
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
         raise AuthorDoesNotExist(
             "Книга не может быть добавлена, т.к. неправильно указан ID автора"
-        )
+        ) from e
 
 
 def put_book(db: Session, book_data: BookPut, book_id: int) -> BooksDB:
-    db_book = db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
+    db_book = db.scalar(select(BooksDB).where(BooksDB.id == book_id))
     if not db_book:
         raise BooksNotFoundError("Книга не найдена")
     for field, data in book_data.model_dump().items():
@@ -41,13 +41,13 @@ def put_book(db: Session, book_data: BookPut, book_id: int) -> BooksDB:
         db.commit()
         db.refresh(db_book)
         return db_book
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise AppExceptions("Возникла проблема при добавлении книги", 400)
+        raise AppExceptions("Возникла проблема при добавлении книги") from e
 
 
 def patch_book(db: Session, book_data: BookPatch, book_id: int) -> BooksDB:
-    db_book = db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
+    db_book = db.scalar(select(BooksDB).where(BooksDB.id == book_id))
     if not db_book:
         raise BooksNotFoundError("Книга не найдена")
     for field, data in book_data.model_dump(exclude_unset=True).items():
@@ -56,18 +56,18 @@ def patch_book(db: Session, book_data: BookPatch, book_id: int) -> BooksDB:
         db.commit()
         db.refresh(db_book)
         return db_book
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise AppExceptions("Возникла проблема при добавлении книги", 400)
+        raise AppExceptions("Возникла проблема при добавлении книги") from e
 
 
 def delete_book(db: Session, book_id: int) -> None:
-    db_book = db.scalar(select(BooksDB).filter(BooksDB.id == book_id))
+    db_book = db.scalar(select(BooksDB).where(BooksDB.id == book_id))
     if not db_book:
         raise BooksNotFoundError("Книга не найдена")
     db.delete(db_book)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
-        raise AppExceptions("Не удалось удалить книгу. Попробуйте ещё раз", 400)
+        raise AppExceptions("Не удалось удалить книгу. Попробуйте ещё раз") from e

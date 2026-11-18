@@ -18,7 +18,6 @@ router = APIRouter(
 )
 
 
-# Get all authors
 @router.get(
     "",
     summary="Get all authors",
@@ -28,7 +27,6 @@ def read_authors(db: SessionDep) -> Sequence[AuthorsDB]:
     return authors_repo.get_all_authors(db)
 
 
-# Add an author
 @router.post(
     "",
     summary="Add new author",
@@ -39,7 +37,6 @@ def create_author(author: AuthorCreate, db: SessionDep):
     return authors_repo.create_author(db, author)
 
 
-# Partial author update
 @router.patch(
     "/{author_id}",
     summary="Update author",
@@ -50,7 +47,6 @@ def update_author(author_id: int, author_data: AuthorPatch, db: SessionDep):
     return authors_repo.patch_author(db, author_data, author_id)
 
 
-# Full author change
 @router.put(
     "/{author_id}",
     summary="Full author change",
@@ -61,7 +57,6 @@ def change_author(author_id: int, author_data: AuthorPut, db: SessionDep):
     return authors_repo.put_author(db, author_data, author_id)
 
 
-# Delete an author
 @router.delete(
     "/{author_id}",
     summary="Delete an author",

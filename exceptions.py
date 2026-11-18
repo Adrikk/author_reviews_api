@@ -37,3 +37,7 @@ class ViolationConstraintError(EntityConflictError):
 
 class BooksNotFoundError(EntityNotFoundError):
     """Выбрасывается, если книга не была найдена"""
+
+
+class ReviewsNotFoundError(EntityNotFoundError):
+    """Выбрасывается, если отзыв не был найден"""

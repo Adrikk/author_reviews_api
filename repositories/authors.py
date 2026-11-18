@@ -18,7 +18,7 @@ def get_all_authors(db: Session) -> Sequence[AuthorsDB]:
 
 
 def get_author_by_id(author_id: int, db: Session) -> AuthorsDB | None:
-    return db.scalar(select(AuthorsDB).filter(AuthorsDB.id == author_id))
+    return db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
 
 
 def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB | None:
@@ -36,7 +36,7 @@ def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB | None:
 
 
 def put_author(db: Session, author_data: AuthorPut, author_id: int) -> AuthorsDB:
-    db_author = db.scalar(select(AuthorsDB).filter(AuthorsDB.id == author_id))
+    db_author = db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
     if not db_author:
         raise AuthorDoesNotExist("Автор с таким ID не найден.")
     for field, data in author_data.model_dump().items():
@@ -53,7 +53,7 @@ def put_author(db: Session, author_data: AuthorPut, author_id: int) -> AuthorsDB
 
 
 def patch_author(db: Session, author_data: AuthorPatch, author_id: int) -> AuthorsDB:
-    db_author = db.scalar(select(AuthorsDB).filter(AuthorsDB.id == author_id))
+    db_author = db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
     if not db_author:
         raise AuthorDoesNotExist("Автор с таким ID не найден.")
     for field, data in author_data.model_dump(exclude_unset=True).items():
@@ -70,7 +70,7 @@ def patch_author(db: Session, author_data: AuthorPatch, author_id: int) -> Autho
 
 
 def delete_author(db: Session, author_id: int) -> bool | None:
-    db_author = db.scalar(select(AuthorsDB).filter(AuthorsDB.id == author_id))
+    db_author = db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
     if not db_author:
         raise AuthorDoesNotExist("Автор не найден")
     try:

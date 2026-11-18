@@ -69,3 +69,28 @@ class BookPatch(BaseModel):
     name: str | None = Field(..., min_length=3)
     description: str | None = Field(..., min_length=5)
     is_shown: bool | None = False
+
+
+class Review(BaseModel):
+    author_id: int = Field(..., ge=1)
+    book_id: int = Field(..., ge=1)
+    description: str = Field(..., min_length=3)
+    rating: int = Field(..., ge=1, le=5)
+    is_shown: bool | None = True
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class ReviewCreate(Review):
+    pass
+
+
+class ReviewPatch(Review):
+    id: int = Field(..., ge=1)
+
+
+class ReviewResp(Review):
+    id: int
+    created: datetime
+
+    model_config = ConfigDict(from_attributes=True)
