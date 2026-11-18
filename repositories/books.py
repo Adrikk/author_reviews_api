@@ -11,7 +11,7 @@ def get_all(db: Session) -> Sequence[BooksDB]:
     return db.scalars(select(BooksDB)).all()
 
 
-def get_by_id(book_id: int, db: Session) -> BooksDB | None:
+def get_by_id(db: Session, book_id: int) -> BooksDB | None:
     return db.scalar(select(BooksDB).where(BooksDB.id == book_id))
 
 
