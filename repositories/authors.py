@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 
 from sqlalchemy import or_, select
-
 from sqlalchemy.orm import Session
 
 from models import AuthorsDB
