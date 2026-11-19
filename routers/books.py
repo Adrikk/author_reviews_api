@@ -1,9 +1,10 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from dependencies import SessionDep
 from schemas import (
     BookCreate,
     BookPatch,
+    BookPut,
     BookResp,
 )
 from services import books as books_serv
@@ -22,15 +23,21 @@ def read_books(db: SessionDep):
     response_model=BookResp,
     status_code=status.HTTP_201_CREATED,
 )
-def create_book(author_id: int, book: BookCreate, db: SessionDep):
+def create_book(
+    book: BookCreate, db: SessionDep, author_id: int = Query(..., ge=1)
+):
     return books_serv.add_new_book(db, author_id, book)
 
 
 @router.put(
     "/{book_id}",
-    summary="Full change the book",
+    summary="Replace the book",
     response_model=BookResp,
 )
+def replace_book(book_id: int, book_data: BookPut, db: SessionDep):
+    return books_serv.update_book(db, book_id, book_data)
+
+
 @router.patch(
     "/{book_id}",
     summary="Partial book update",

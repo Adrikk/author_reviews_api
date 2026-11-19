@@ -2,9 +2,10 @@ from collections.abc import Sequence
 
 from sqlalchemy import or_, select
 
-from dependencies import Session
+from sqlalchemy.orm import Session
+
 from models import AuthorsDB
-from schemas import AuthorCreate, AuthorPatch
+from schemas import AuthorCreate, AuthorPatch, AuthorPut
 
 
 def get_all(db: Session) -> Sequence[AuthorsDB]:
@@ -43,13 +44,15 @@ def create(db: Session, author_data: AuthorCreate) -> AuthorsDB:
     return new_author
 
 
-def update(db: Session, author: AuthorsDB, author_data: AuthorPatch) -> AuthorsDB:
+def update(
+    db: Session, author: AuthorsDB, author_data: AuthorPatch | AuthorPut
+) -> AuthorsDB:
     for field, data in author_data.model_dump(exclude_unset=True).items():
         setattr(author, field, data)
     db.flush()
     return author
 
 
-def delete(db: Session, author: AuthorsDB) -> bool | None:
+def delete(db: Session, author: AuthorsDB) -> None:
     db.delete(author)
     db.flush()

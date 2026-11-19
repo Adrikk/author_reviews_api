@@ -4,6 +4,7 @@ from dependencies import SessionDep
 from schemas import (
     AuthorCreate,
     AuthorPatch,
+    AuthorPut,
     AuthorResp,
 )
 from services import authors as authors_serv
@@ -24,7 +25,7 @@ def get_authors(db: SessionDep):
 
 
 @router.get(
-    "",
+    "/{author_id}",
     summary="Get author",
     response_model=AuthorResp,
 )
@@ -40,6 +41,15 @@ def get_author(db: SessionDep, author_id: int):
 )
 def create_author(author: AuthorCreate, db: SessionDep):
     return authors_serv.create_author(db, author)
+
+
+@router.put(
+    "/{author_id}",
+    summary="Replace author",
+    response_model=AuthorResp,
+)
+def replace_author(author_id: int, author_data: AuthorPut, db: SessionDep):
+    return authors_serv.update_author(db, author_id, author_data)
 
 
 @router.patch(

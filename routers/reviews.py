@@ -1,7 +1,6 @@
 from fastapi import APIRouter, status
 
 from dependencies import SessionDep
-from exceptions import ReviewsNotFoundError
 from schemas import (
     ReviewCreate,
     ReviewPatch,
@@ -19,10 +18,7 @@ def read_reviews(db: SessionDep, book_id: int):
 
 @router.get("/{review_id}", summary="Get review", response_model=ReviewResp)
 def read_review(db: SessionDep, book_id: int, review_id: int):
-    review = reviews_serv.get_review(db, book_id, review_id)
-    if not review:
-        raise ReviewsNotFoundError("Отзыв не найден")
-    return review
+    return reviews_serv.get_review(db, book_id, review_id)
 
 
 @router.post(
@@ -43,7 +39,7 @@ def create_review(db: SessionDep, review_data: ReviewCreate, book_id: int):
 def update_review(
     db: SessionDep, review_id: int, book_id: int, review_data: ReviewPatch
 ):
-    return reviews_serv.update_review(db, review_id, book_id, review_data)
+    return reviews_serv.update_review(db, book_id, review_id, review_data)
 
 
 @router.delete(
@@ -52,4 +48,4 @@ def update_review(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_review(db: SessionDep, review_id: int, book_id: int):
-    reviews_serv.delete_review(db, review_id, book_id)
+    reviews_serv.delete_review(db, book_id, review_id)

@@ -5,14 +5,11 @@ from sqlalchemy.orm import Session
 from exceptions import AuthorDoesNotExist, ConflictError
 from models import AuthorsDB
 from repositories import authors as authors_repo
-from schemas import AuthorCreate, AuthorPatch
+from schemas import AuthorCreate, AuthorPatch, AuthorPut
 
 
 def get_all_authors(db: Session) -> Sequence[AuthorsDB]:
-    authors = authors_repo.get_all(db)
-    if not authors:
-        raise AuthorDoesNotExist("Список авторов пуст")
-    return authors
+    return authors_repo.get_all(db)
 
 
 def get_author(db: Session, author_id: int) -> AuthorsDB:
@@ -35,7 +32,9 @@ def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB:
     return authors_repo.create(db, author_data)
 
 
-def update_author(db: Session, author_id: int, author_data: AuthorPatch) -> AuthorsDB:
+def update_author(
+    db: Session, author_id: int, author_data: AuthorPatch | AuthorPut
+) -> AuthorsDB:
     author = authors_repo.get_by_id(db, author_id)
     if not author:
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")

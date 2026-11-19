@@ -7,11 +7,12 @@ from fastapi.responses import JSONResponse
 from exceptions import (
     AppExceptions,
 )
-from routers import authors, books
+from routers import authors, books, reviews
 
 app = FastAPI(title="My Pet Project")
 app.include_router(authors.router)
 app.include_router(books.router)
+app.include_router(reviews.router)
 
 logger = logging.getLogger("PET_CRUD_APP")
 

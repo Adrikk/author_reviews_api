@@ -26,10 +26,10 @@ class AuthorsDB(Base):
     created: Mapped[datetime] = mapped_column(default=datetime.now)
 
     books: Mapped[list["BooksDB"]] = relationship(
-        back_populates="authors", cascade="all, delete-orphan", passive_deletes=True
+        back_populates="author", cascade="all, delete-orphan", passive_deletes=True
     )
     reviews: Mapped[list["ReviewsDB"]] = relationship(
-        back_populates="authors", cascade="all, delete-orphan", passive_deletes=True
+        back_populates="author", cascade="all, delete-orphan", passive_deletes=True
     )
 
 
@@ -46,6 +46,9 @@ class BooksDB(Base):
     is_shown: Mapped[bool] = mapped_column(default=False, server_default=false())
 
     author: Mapped["AuthorsDB"] = relationship(back_populates="books")
+    reviews: Mapped[list["ReviewsDB"]] = relationship(
+        back_populates="book", cascade="all, delete-orphan", passive_deletes=True
+    )
 
 
 class ReviewsDB(Base):
@@ -63,4 +66,4 @@ class ReviewsDB(Base):
     is_shown: Mapped[bool] = mapped_column(default=False, server_default=false())
 
     author: Mapped["AuthorsDB"] = relationship(back_populates="reviews")
-    book: Mapped["BooksDB"] = relationship(back_populates="books")
+    book: Mapped["BooksDB"] = relationship(back_populates="reviews")

@@ -1,14 +1,18 @@
 from collections.abc import Sequence
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
-from dependencies import Session
 from models import ReviewsDB
 from schemas import ReviewCreate, ReviewPatch
 
 
 def get_all_by_book(db: Session, book_id: int) -> Sequence[ReviewsDB]:
-    return db.scalars(select(ReviewsDB).where(ReviewsDB.book_id == book_id)).all()
+    return db.scalars(
+        select(ReviewsDB).where(
+            ReviewsDB.book_id == book_id, ReviewsDB.is_shown.is_(True)
+        )
+    ).all()
 
 
 def get_by_id(db: Session, book_id: int, review_id: int) -> ReviewsDB | None:
@@ -38,6 +42,8 @@ def delete(db: Session, db_review: ReviewsDB) -> None:
 
 def get_average_rating(db: Session, book_id: int) -> float:
     avg = db.scalar(
-        select(func.avg(ReviewsDB.rating)).where(ReviewsDB.book_id == book_id)
+        select(func.avg(ReviewsDB.rating)).where(
+            ReviewsDB.book_id == book_id, ReviewsDB.is_shown.is_(True)
+        )
     )
     return round(float(avg), 2) if avg is not None else 0.0
