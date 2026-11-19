@@ -1,20 +1,19 @@
 from fastapi import APIRouter, status
 
 from dependencies import SessionDep
-from repositories import books as books_repo
 from schemas import (
     BookCreate,
     BookPatch,
-    BookPut,
     BookResp,
 )
+from services import books as books_serv
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
 
 @router.get("", summary="Get all books", response_model=list[BookResp])
 def read_books(db: SessionDep):
-    return books_repo.get_all_books(db)
+    return books_serv.get_all_books(db)
 
 
 @router.post(
@@ -23,8 +22,8 @@ def read_books(db: SessionDep):
     response_model=BookResp,
     status_code=status.HTTP_201_CREATED,
 )
-def create_book(book: BookCreate, db: SessionDep):
-    return books_repo.create_book(db, book)
+def create_book(author_id: int, book: BookCreate, db: SessionDep):
+    return books_serv.add_new_book(db, author_id, book)
 
 
 @router.put(
@@ -32,17 +31,13 @@ def create_book(book: BookCreate, db: SessionDep):
     summary="Full change the book",
     response_model=BookResp,
 )
-def change_book(book_id: int, book_data: BookPut, db: SessionDep):
-    return books_repo.put_book(db, book_data, book_id)
-
-
 @router.patch(
     "/{book_id}",
     summary="Partial book update",
     response_model=BookResp,
 )
 def update_book(book_id: int, book_data: BookPatch, db: SessionDep):
-    return books_repo.patch_book(db, book_data, book_id)
+    return books_serv.update_book(db, book_id, book_data)
 
 
 @router.delete(
@@ -51,4 +46,4 @@ def update_book(book_id: int, book_data: BookPatch, db: SessionDep):
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_book(book_id: int, db: SessionDep):
-    books_repo.delete_book(db, book_id)
+    books_serv.delete_book(db, book_id)

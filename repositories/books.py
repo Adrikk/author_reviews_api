@@ -15,8 +15,8 @@ def get_by_id(db: Session, book_id: int) -> BooksDB | None:
     return db.scalar(select(BooksDB).where(BooksDB.id == book_id))
 
 
-def create(db: Session, book_data: BookCreate) -> BooksDB:
-    new_book = BooksDB(**book_data.model_dump())
+def create(db: Session, book_data: BookCreate, author_id: int) -> BooksDB:
+    new_book = BooksDB(**book_data.model_dump(), author_id=author_id)
     db.add(new_book)
     db.flush()
     return new_book

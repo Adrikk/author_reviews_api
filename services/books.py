@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from exceptions import BooksNotFoundError
 from models import BooksDB
 from repositories import books as books_repo
-from schemas import BookCreate
+from schemas import BookCreate, BookPatch
 
 
 def get_all_books(db: Session) -> Sequence[BooksDB]:
@@ -21,4 +21,20 @@ def get_book(db: Session, book_id: int):
         raise BooksNotFoundError(f"Книга с ID={book_id} не найдена")
     return book
 
-def add_new_book(db: Session, book_data: BooksCreate) -> BooksDB:
+
+def add_new_book(db: Session, author_id: int, book_data: BookCreate) -> BooksDB:
+    return books_repo.create(db, book_data, author_id)
+
+
+def update_book(db: Session, book_id: int, book_data: BookPatch) -> BooksDB:
+    book = books_repo.get_by_id(db, book_id)
+    if not book:
+        raise BooksNotFoundError(f"Книга с ID={book_id} не найдена")
+    return books_repo.update(db, book, book_data)
+
+
+def delete_book(db: Session, book_id: int):
+    book = books_repo.get_by_id(db, book_id)
+    if not book:
+        raise BooksNotFoundError(f"Книга с ID={book_id} не найдена")
+    books_repo.delete_book(db, book)
