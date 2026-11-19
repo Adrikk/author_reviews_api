@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from dependencies import Session
 from models import AuthorsDB
@@ -13,6 +13,27 @@ def get_all(db: Session) -> Sequence[AuthorsDB]:
 
 def get_by_id(db: Session, author_id: int) -> AuthorsDB | None:
     return db.scalar(select(AuthorsDB).where(AuthorsDB.id == author_id))
+
+
+def get_by_username_or_email(
+    db: Session,
+    username: str | None = None,
+    email: str | None = None,
+    exclude_id: int | None = None,
+) -> AuthorsDB | None:
+    conditions = []
+    if username is not None:
+        conditions.append(AuthorsDB.username == username)
+    if email is not None:
+        conditions.append(AuthorsDB.email == email)
+
+    if not conditions:
+        return None
+
+    req = select(AuthorsDB).where(or_(*conditions))
+    if exclude_id is not None:
+        req = req.where(AuthorsDB.id != exclude_id)
+    return db.scalar(req)
 
 
 def create(db: Session, author_data: AuthorCreate) -> AuthorsDB:
