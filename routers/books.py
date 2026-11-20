@@ -12,7 +12,11 @@ from services import books as books_serv
 router = APIRouter(prefix="/books", tags=["Books"])
 
 
-@router.get("", summary="Get all books", response_model=list[BookResp])
+@router.get(
+    "",
+    summary="Get all books",
+    response_model=list[BookResp],
+)
 def read_books(db: SessionDep):
     return books_serv.get_all_books(db)
 
@@ -23,9 +27,7 @@ def read_books(db: SessionDep):
     response_model=BookResp,
     status_code=status.HTTP_201_CREATED,
 )
-def create_book(
-    book: BookCreate, db: SessionDep, author_id: int = Query(..., ge=1)
-):
+def create_book(book: BookCreate, db: SessionDep, author_id: int = Query(..., ge=1)):
     return books_serv.add_new_book(db, author_id, book)
 
 

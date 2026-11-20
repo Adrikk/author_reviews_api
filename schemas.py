@@ -3,6 +3,11 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 # Модель автора
 class Author(BaseModel):
     lastname: str = Field(..., min_length=3, max_length=20)
@@ -15,7 +20,7 @@ class Author(BaseModel):
 
 # Модель при создании автора
 class AuthorCreate(Author):
-    pass
+    password: str = Field(..., min_length=8, max_length=20)
 
 
 # Модель для ответа по авторам
@@ -26,15 +31,12 @@ class AuthorResp(Author):
     model_config = ConfigDict(from_attributes=True)
 
 
-class AuthorPut(Author):
-    pass
-
-
 class AuthorPatch(BaseModel):
     lastname: str | None = Field(default=None, min_length=3, max_length=20)
     firstname: str | None = Field(default=None, min_length=3, max_length=20)
     email: EmailStr | None = Field(default=None, max_length=30)
     username: str | None = Field(default=None, min_length=6, max_length=20)
+    password: str | None = Field(default=None, min_length=8, max_length=20)
 
     model_config = ConfigDict(extra="forbid")
 
@@ -45,6 +47,10 @@ class AuthorPatch(BaseModel):
         if any(getattr(self, field) is None for field in self.model_fields_set):
             raise ValueError("Поля автора не могут быть null")
         return self
+
+
+class AuthorCreateDB(Author):
+    password_hash: str
 
 
 # Книги

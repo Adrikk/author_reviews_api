@@ -22,6 +22,7 @@ class AuthorsDB(Base):
     lastname: Mapped[str] = mapped_column(index=True)
     firstname: Mapped[str] = mapped_column(index=True)
     username: Mapped[str] = mapped_column(unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column()
     email: Mapped[str] = mapped_column(unique=True, index=True)
     created: Mapped[datetime] = mapped_column(default=datetime.now)
 

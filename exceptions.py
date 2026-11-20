@@ -24,6 +24,16 @@ class DatabaseError(AppExceptions):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
 
+class InvalidCredentialsError(AppExceptions):
+    """Ошибка при попытке авторизации"""
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+
+
+class CredentialsError(InvalidCredentialsError):
+    message = "Введены неправильные данные для авторизации"
+
+
 class EntityNotFoundError(AppExceptions):
     """Базовая ошибка при не нахождении данных"""
 

@@ -2,10 +2,11 @@ from collections.abc import Sequence
 
 from sqlalchemy.orm import Session
 
-from exceptions import AuthorDoesNotExist, ConflictError
+from core import security
+from exceptions import AuthorDoesNotExist, ConflictError, InvalidCredentialsError
 from models import AuthorsDB
 from repositories import authors as authors_repo
-from schemas import AuthorCreate, AuthorPatch, AuthorPut
+from schemas import AuthorCreate, AuthorCreateDB, AuthorPatch
 
 
 def get_all_authors(db: Session) -> Sequence[AuthorsDB]:
@@ -29,12 +30,15 @@ def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB:
                 f"Пользователь с username={author_data.username} уже существует"
             )
         raise ConflictError(f"Пользователь с email={author_data.email} уже существует")
-    return authors_repo.create(db, author_data)
+
+    author_in_db = AuthorCreateDB(
+        **author_data.model_dump(exclude={"password"}),
+        password_hash=security.hash_password(author_data.password),
+    )
+    return authors_repo.create(db, author_in_db)
 
 
-def update_author(
-    db: Session, author_id: int, author_data: AuthorPatch | AuthorPut
-) -> AuthorsDB:
+def update_author(db: Session, author_id: int, author_data: AuthorPatch) -> AuthorsDB:
     author = authors_repo.get_by_id(db, author_id)
     if not author:
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")
@@ -59,3 +63,10 @@ def delete_author(db: Session, author_id: int):
     if not author:
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")
     authors_repo.delete(db, author)
+
+
+def authenticate_author(db: Session, username: str, password: str) -> AuthorsDB:
+    author = authors_repo.get_by_username_or_email(db, username)
+    if author and security.verify_password(password, author.password_hash):
+        return author
+    raise InvalidCredentialsError("Неверный логин или пароль")

@@ -4,7 +4,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from models import AuthorsDB
-from schemas import AuthorCreate, AuthorPatch, AuthorPut
+from schemas import AuthorCreateDB, AuthorPatch
 
 
 def get_all(db: Session) -> Sequence[AuthorsDB]:
@@ -36,16 +36,14 @@ def get_by_username_or_email(
     return db.scalar(req)
 
 
-def create(db: Session, author_data: AuthorCreate) -> AuthorsDB:
+def create(db: Session, author_data: AuthorCreateDB) -> AuthorsDB:
     new_author = AuthorsDB(**author_data.model_dump())
     db.add(new_author)
     db.flush()
     return new_author
 
 
-def update(
-    db: Session, author: AuthorsDB, author_data: AuthorPatch | AuthorPut
-) -> AuthorsDB:
+def update(db: Session, author: AuthorsDB, author_data: AuthorPatch) -> AuthorsDB:
     for field, data in author_data.model_dump(exclude_unset=True).items():
         setattr(author, field, data)
     db.flush()
