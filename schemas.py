@@ -76,10 +76,6 @@ class BookResp(Book):
     model_config = ConfigDict(from_attributes=True)
 
 
-class BookPut(Book):
-    pass
-
-
 class BookPatch(BaseModel):
     name: str | None = Field(default=None, min_length=3)
     description: str | None = Field(default=None, min_length=5)
@@ -105,7 +101,9 @@ class Review(BaseModel):
 
 
 class ReviewCreate(Review):
-    author_id: int = Field(..., ge=1)
+    """
+    Docstring for ReviewCreate
+    """
 
 
 class ReviewPatch(BaseModel):

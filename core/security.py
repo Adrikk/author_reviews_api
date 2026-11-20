@@ -1,8 +1,9 @@
 from datetime import UTC, datetime, timedelta
 
-import config
 import jwt
 from pwdlib import PasswordHash
+
+from core import config
 
 
 def hash_password(password: str) -> str:

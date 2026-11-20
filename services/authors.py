@@ -13,16 +13,18 @@ def get_all_authors(db: Session) -> Sequence[AuthorsDB]:
     return authors_repo.get_all(db)
 
 
-def get_author(db: Session, author_id: int) -> AuthorsDB:
-    author = authors_repo.get_by_id(db, author_id)
+def get_author(author_id: int, db: Session) -> AuthorsDB:
+    author = authors_repo.get_by_id(author_id=author_id, db=db)
     if not author:
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")
     return author
 
 
-def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB:
+def create_author(author_data: AuthorCreate, db: Session) -> AuthorsDB:
     existing_author = authors_repo.get_by_username_or_email(
-        db, author_data.username, author_data.email
+        username=author_data.username,
+        email=author_data.email,
+        db=db,
     )
     if existing_author:
         if existing_author.username == author_data.username:
@@ -35,16 +37,21 @@ def create_author(db: Session, author_data: AuthorCreate) -> AuthorsDB:
         **author_data.model_dump(exclude={"password"}),
         password_hash=security.hash_password(author_data.password),
     )
-    return authors_repo.create(db, author_in_db)
+    return authors_repo.create(author_data=author_in_db, db=db)
 
 
-def update_author(db: Session, author_id: int, author_data: AuthorPatch) -> AuthorsDB:
-    author = authors_repo.get_by_id(db, author_id)
+def update_author(
+    author_id: int, author_data: AuthorPatch, db: Session
+) -> AuthorsDB:
+    author = authors_repo.get_by_id(author_id=author_id, db=db)
     if not author:
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")
     if author_data.username is not None or author_data.email is not None:
         existed_author = authors_repo.get_by_username_or_email(
-            db, author_data.username, author_data.email, exclude_id=author.id
+            username=author_data.username,
+            email=author_data.email,
+            exclude_id=author.id,
+            db=db,
         )
         if existed_author:
             if author_data.username and existed_author.username == author_data.username:
@@ -55,18 +62,18 @@ def update_author(db: Session, author_id: int, author_data: AuthorPatch) -> Auth
                 f"Пользователь с email={author_data.email} уже существует"
             )
 
-    return authors_repo.update(db, author, author_data)
+    return authors_repo.update(author=author, author_data=author_data, db=db)
 
 
-def delete_author(db: Session, author_id: int):
-    author = authors_repo.get_by_id(db, author_id)
+def delete_author(author_id: int, db: Session) -> None:
+    author = authors_repo.get_by_id(author_id=author_id, db=db)
     if not author:
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")
-    authors_repo.delete(db, author)
+    authors_repo.delete(author=author, db=db)
 
 
-def authenticate_author(db: Session, username: str, password: str) -> AuthorsDB:
-    author = authors_repo.get_by_username_or_email(db, username)
+def authenticate_author(username: str, password: str, db: Session) -> AuthorsDB:
+    author = authors_repo.get_by_username_or_email(username=username, db=db)
     if author and security.verify_password(password, author.password_hash):
         return author
     raise InvalidCredentialsError("Неверный логин или пароль")

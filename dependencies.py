@@ -53,7 +53,7 @@ def get_current_author(
         author_id = int(author_id)
     except (jwt.InvalidTokenError, ValueError):
         raise CredentialsError
-    author = author_repo.get_by_id(db, author_id)
+    author = author_repo.get_by_id(author_id=author_id, db=db)
     if not author:
         raise CredentialsError
     return author

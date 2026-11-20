@@ -7,7 +7,7 @@ from models import ReviewsDB
 from schemas import ReviewCreate, ReviewPatch
 
 
-def get_all_by_book(db: Session, book_id: int) -> Sequence[ReviewsDB]:
+def get_all_by_book(book_id: int, db: Session) -> Sequence[ReviewsDB]:
     return db.scalars(
         select(ReviewsDB).where(
             ReviewsDB.book_id == book_id, ReviewsDB.is_shown.is_(True)
@@ -15,32 +15,38 @@ def get_all_by_book(db: Session, book_id: int) -> Sequence[ReviewsDB]:
     ).all()
 
 
-def get_by_id(db: Session, book_id: int, review_id: int) -> ReviewsDB | None:
+def get_by_id(book_id: int, review_id: int, db: Session) -> ReviewsDB | None:
     return db.scalar(
         select(ReviewsDB).where(ReviewsDB.id == review_id, ReviewsDB.book_id == book_id)
     )
 
 
-def create(db: Session, review_data: ReviewCreate, book_id: int) -> ReviewsDB:
-    new_review = ReviewsDB(**review_data.model_dump(), book_id=book_id)
+def create(
+    book_id: int, author_id: int, review_data: ReviewCreate, db: Session
+) -> ReviewsDB:
+    new_review = ReviewsDB(
+        **review_data.model_dump(), book_id=book_id, author_id=author_id
+    )
     db.add(new_review)
     db.flush()
     return new_review
 
 
-def update(db: Session, review: ReviewsDB, review_data: ReviewPatch) -> ReviewsDB:
+def update(
+    review: ReviewsDB, review_data: ReviewPatch, db: Session
+) -> ReviewsDB:
     for field, data in review_data.model_dump(exclude_unset=True).items():
         setattr(review, field, data)
     db.flush()
     return review
 
 
-def delete(db: Session, db_review: ReviewsDB) -> None:
+def delete(db_review: ReviewsDB, db: Session) -> None:
     db.delete(db_review)
     db.flush()
 
 
-def get_average_rating(db: Session, book_id: int) -> float:
+def get_average_rating(book_id: int, db: Session) -> float:
     avg = db.scalar(
         select(func.avg(ReviewsDB.rating)).where(
             ReviewsDB.book_id == book_id, ReviewsDB.is_shown.is_(True)

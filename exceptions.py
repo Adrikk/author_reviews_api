@@ -34,6 +34,11 @@ class CredentialsError(InvalidCredentialsError):
     message = "Введены неправильные данные для авторизации"
 
 
+class PermissionDeniedError(AppExceptions):
+    message = "Доступ запрещен"
+    status_code = status.HTTP_403_FORBIDDEN
+
+
 class EntityNotFoundError(AppExceptions):
     """Базовая ошибка при не нахождении данных"""
 

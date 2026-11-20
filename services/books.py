@@ -2,41 +2,47 @@ from collections.abc import Sequence
 
 from sqlalchemy.orm import Session
 
-from exceptions import AuthorDoesNotExist, BooksNotFoundError
+from exceptions import AuthorDoesNotExist, BooksNotFoundError, PermissionDeniedError
 from models import BooksDB
 from repositories import authors as authors_repo
 from repositories import books as books_repo
-from schemas import BookCreate, BookPatch, BookPut
+from schemas import BookCreate, BookPatch
 
 
 def get_all_books(db: Session) -> Sequence[BooksDB]:
     return books_repo.get_all(db)
 
 
-def get_book(db: Session, book_id: int):
-    book = books_repo.get_by_id(db, book_id)
+def get_book(book_id: int, db: Session) -> BooksDB:
+    book = books_repo.get_by_id(book_id=book_id, db=db)
     if not book or not book.is_shown:
         raise BooksNotFoundError(f"Книга с ID={book_id} не найдена")
     return book
 
 
-def add_new_book(db: Session, author_id: int, book_data: BookCreate) -> BooksDB:
-    if not authors_repo.get_by_id(db, author_id):
+def add_new_book(
+    author_id: int, book_data: BookCreate, db: Session
+) -> BooksDB:
+    if not authors_repo.get_by_id(author_id=author_id, db=db):
         raise AuthorDoesNotExist(f"Автор с ID={author_id} не найден")
-    return books_repo.create(db, book_data, author_id)
+    return books_repo.create(author_id=author_id, book_data=book_data, db=db)
 
 
 def update_book(
-    db: Session, book_id: int, book_data: BookPatch | BookPut
+    book_id: int, book_data: BookPatch, author_id: int, db: Session
 ) -> BooksDB:
-    book = books_repo.get_by_id(db, book_id)
+    book = books_repo.get_by_id(book_id=book_id, db=db)
     if not book:
         raise BooksNotFoundError(f"Книга с ID={book_id} не найдена")
-    return books_repo.update(db, book, book_data)
+    if book.author_id != author_id:
+        raise PermissionDeniedError("Вы не можете изменять чужие книги")
+    return books_repo.update(book=book, book_data=book_data, db=db)
 
 
-def delete_book(db: Session, book_id: int):
-    book = books_repo.get_by_id(db, book_id)
+def delete_book(book_id: int, author_id: int, db: Session) -> None:
+    book = books_repo.get_by_id(book_id=book_id, db=db)
     if not book:
         raise BooksNotFoundError(f"Книга с ID={book_id} не найдена")
-    books_repo.delete_book(db, book)
+    if book.author_id != author_id:
+        raise PermissionDeniedError("Вы не можете удалять чужие книги")
+    books_repo.delete_book(book=book, db=db)

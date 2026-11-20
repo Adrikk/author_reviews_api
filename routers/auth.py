@@ -16,7 +16,9 @@ def login_author(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: SessionDep
 ):
     author = authors_serv.authenticate_author(
-        db, form_data.username, form_data.password
+        username=form_data.username,
+        password=form_data.password,
+        db=db,
     )
     token = security.create_access_token(author.id)
     return Token(access_token=token)

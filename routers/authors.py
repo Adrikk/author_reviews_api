@@ -28,8 +28,8 @@ def get_authors(db: SessionDep):
     summary="Get author",
     response_model=AuthorResp,
 )
-def get_author(db: SessionDep, author_id: int):
-    return authors_serv.get_author(db, author_id)
+def get_author(author_id: int, db: SessionDep):
+    return authors_serv.get_author(author_id=author_id, db=db)
 
 
 @router.post(
@@ -39,7 +39,7 @@ def get_author(db: SessionDep, author_id: int):
     response_model=AuthorResp,
 )
 def create_author(author: AuthorCreate, db: SessionDep):
-    return authors_serv.create_author(db, author)
+    return authors_serv.create_author(author_data=author, db=db)
 
 
 @router.patch(
@@ -49,7 +49,9 @@ def create_author(author: AuthorCreate, db: SessionDep):
     status_code=status.HTTP_200_OK,
 )
 def update_author(author_id: int, author_data: AuthorPatch, db: SessionDep):
-    return authors_serv.update_author(db, author_id, author_data)
+    return authors_serv.update_author(
+        author_id=author_id, author_data=author_data, db=db
+    )
 
 
 @router.delete(
@@ -57,5 +59,5 @@ def update_author(author_id: int, author_data: AuthorPatch, db: SessionDep):
     summary="Delete an author",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_author(db: SessionDep, author_id: int):
-    authors_serv.delete_author(db, author_id)
+def delete_author(author_id: int, db: SessionDep):
+    authors_serv.delete_author(author_id=author_id, db=db)
